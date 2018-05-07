@@ -8,23 +8,23 @@ from mininet.util import irange
 
 
 class VLANHost(Host):
-    "Host connected to VLAN interface"
+    """Host connected to VLAN interface"""
 
-    def config(self, ip, vlan=100, **params):
+    def config(self, vlan=100, **params):
         """Configure VLANHost according to (optional) parameters:
            vlan: VLAN ID for default interface"""
 
         r = super(VLANHost, self).config(**params)
-        r = super(VLANHost, self).config(**params)
-        r = super(VLANHost, self).config(**params)
-        r = super(VLANHost, self).config(**params)
 
         intf = self.defaultIntf()
         # remove IP from default, "physical" interface
+        print('ifconfig %s inet 0' % intf)
         self.cmd('ifconfig %s inet 0' % intf)
         # create VLAN interface
-        self.cmd('vconfig add %s %d' % (ip, vlan))
+        print('vconfig add %s %d' % (intf, vlan))
+        self.cmd('vconfig add %s %d' % (intf, vlan))
         # assign the host's IP to the VLAN interface
+        print('ifconfig %s.%d inet %s' % (intf, vlan, params['ip']))
         self.cmd('ifconfig %s.%d inet %s' % (intf, vlan, params['ip']))
         # update the intf name and host's intf map
         newName = '%s.%d' % (intf, vlan)
@@ -32,7 +32,6 @@ class VLANHost(Host):
         intf.name = newName
         # add VLAN interface to host's name to intf map
         self.nameToIntf[newName] = intf
-
         return r
 
 
