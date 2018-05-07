@@ -1,29 +1,30 @@
 #!/usr/bin/python
 from mininet.topo import Topo
 from mininet.net import Mininet
-from mininet.util import irange, dumpNodeConnections
+from mininet.util import irange
 from mininet.log import setLogLevel
-from mininet.node import RemoteController
+from mininet.node import RemoteController, Host, Switch, Link
 from mininet.cli import CLI
-
 
 class LinearTopo(Topo):
     """Linear topology of k switches, with one host per switch."""
 
-    def __init__(self, k=2, **opts):
+    def __init__(self, switches=3, hosts_per_switch=1, **opts):
         """ In it.
-            k: number of switches (and hosts)
-            hconf: host configuration options
-            lconf: link configuration options"""
+            switches: number of switches (and hosts)
+            hosts_per_switch: number of hosts per switch """
 
         super(LinearTopo, self).__init__(**opts)
+        self.k = switches
 
-        self.k = k
         lastSwitch = None
-        for i in irange(1, k):
-            host = self.addHost('h%s' % i)
+        lastHost = 0
+        for i in irange(1, switches):
             switch = self.addSwitch('s%s' % i)
-            self.addLink(host, switch)
+            for j in irange(lastHost + 1, hosts_per_switch + lastHost):
+                host = self.addHost('h%s' % j, ip='11.0.0.%s' % j)
+                self.addLink(host, switch)
+                lastHost = j
 
             if lastSwitch:
                 self.addLink(switch, lastSwitch)
@@ -32,13 +33,9 @@ class LinearTopo(Topo):
 
 def simpleTest():
     """Create and test a simple network"""
-    topo = LinearTopo(k=4)
+    topo = LinearTopo(switches=3, hosts_per_switch=2)
     net = Mininet(topo=topo, controller=RemoteController)
     net.start()
-    print "Dumping host connections"
-    dumpNodeConnections(net.hosts)
-    print "Testing network connectivity"
-    net.pingAll()
     CLI(net)
     net.stop()
 
