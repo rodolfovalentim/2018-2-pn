@@ -2,7 +2,7 @@
 from mininet.cli import CLI
 from mininet.log import setLogLevel
 from mininet.net import Mininet
-from mininet.node import RemoteController, Host
+from mininet.node import RemoteController
 from mininet.topo import Topo
 from mininet.util import irange
 
