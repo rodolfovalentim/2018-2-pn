@@ -8,7 +8,7 @@ from mininet.util import irange
 
 
 class VLANHost(Host):
-    """Host connected to VLAN interface"""
+    "Host connected to VLAN interface"
 
     def config(self, vlan=100, **params):
         """Configure VLANHost according to (optional) parameters:
@@ -25,10 +25,13 @@ class VLANHost(Host):
         self.cmd('ifconfig %s.%d inet %s' % (intf, vlan, params['ip']))
         # update the intf name and host's intf map
         newName = '%s.%d' % (intf, vlan)
-        # update the (Mininet) interface to refer to VLAN interface name
+        # restore default gateway
+        self.cmd('route add default gw %s' % params['gateway'])
+        # update thee (Mininet) interface to refer to VLAN interface name
         intf.name = newName
         # add VLAN interface to host's name to intf map
         self.nameToIntf[newName] = intf
+
         return r
 
 
@@ -46,16 +49,16 @@ class LinearTopo(Topo):
         lastSwitch = None
         lastHost = 0
         for i in irange(1, switches):
-            switch = self.addSwitch('s%s' % i, protocols='OpenFlow13', address='172.16.20.1/24')
+            switch = self.addSwitch('s%s' % i, protocols='OpenFlow13')
             for j in irange(lastHost + 1, hosts_per_switch + lastHost):
 
                 ip = '10.0.0.%s/24' % j
                 if opts['ip_map']:
                     ip = opts['ip_map']['h%s' % j][0]
-                    default_route = opts['ip_map']['h%s' % j][1]
+                    gateway = opts['ip_map']['h%s' % j][1]
                     vlan = opts['ip_map']['h%s' % j][2]
 
-                host = self.addHost('h%s' % j, defaultRoute=default_route, cls=VLANHost, ip=ip, vlan=vlan)
+                host = self.addHost('h%s' % j, cls=VLANHost, ip=ip, vlan=vlan, gateway=gateway)
                 self.addLink(host, switch)
                 lastHost = j
 
@@ -66,12 +69,12 @@ class LinearTopo(Topo):
 
 def simpleTest():
     """Create and test a simple network"""
-    ip_map = {'h1': ['172.16.10.10/24', 'via 172.16.10.1', 2],
-              'h2': ['172.16.10.11/24', 'via 172.16.10.1', 110],
-              'h3': ['192.168.30.10/24', 'via 192.168.30.1', 2],
-              'h4': ['192.168.30.11/24', 'via 192.168.30.1', 110],
-              'h5': ['172.16.20.10/24', 'via 172.16.20.1', 2],
-              'h6': ['172.16.20.11/24', 'via 172.16.20.1', 110]}
+    ip_map = {'h1': ['172.16.10.10/24', '172.16.10.1', 2, '172.16.10.254'],
+              'h2': ['172.16.10.11/24', '172.16.10.1', 110, '172.16.10.254'],
+              'h3': ['192.168.30.10/24', '192.168.30.1', 2, '192.168.30.254'],
+              'h4': ['192.168.30.11/24', '192.168.30.1', 110, '192.168.30.254'],
+              'h5': ['172.16.20.10/24', '172.16.20.1', 2, '172.16.10.254'],
+              'h6': ['172.16.20.11/24', '172.16.20.1', 110, '172.16.10.254']}
 
     topo = LinearTopo(switches=3, hosts_per_switch=2, ip_map=ip_map)
     net = Mininet(topo=topo, controller=RemoteController)

@@ -21,14 +21,13 @@ class LinearTopo(Topo):
         lastSwitch = None
         lastHost = 0
         for i in irange(1, switches):
-            switch = self.addSwitch('s%s' % i, protocols='OpenFlow13', address='172.16.20.1/24')
+            switch = self.addSwitch('s%s' % i, protocols='OpenFlow13')
             for j in irange(lastHost + 1, hosts_per_switch + lastHost):
 
                 ip = '10.0.0.%s/24' % j
                 if opts['ip_map']:
                     ip = opts['ip_map']['h%s' % j][0]
                     default_route = opts['ip_map']['h%s' % j][1]
-                    vlan = opts['ip_map']['h%s' % j][2]
 
                 host = self.addHost('h%s' % j, defaultRoute=default_route, ip=ip)
                 self.addLink(host, switch)
@@ -39,7 +38,7 @@ class LinearTopo(Topo):
             lastSwitch = switch
 
 
-def simpleTest(e):
+def simpleTest():
     """Create and test a simple network"""
     ip_map = {'h1': ['172.16.20.10/24', 'via 172.16.20.1'],
               'h2': ['172.16.10.10/24', 'via 172.16.10.1'],
