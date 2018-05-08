@@ -18,13 +18,10 @@ class VLANHost(Host):
 
         intf = self.defaultIntf()
         # remove IP from default, "physical" interface
-        print('ifconfig %s inet 0' % intf)
         self.cmd('ifconfig %s inet 0' % intf)
         # create VLAN interface
-        print('vconfig add %s %d' % (intf, vlan))
         self.cmd('vconfig add %s %d' % (intf, vlan))
         # assign the host's IP to the VLAN interface
-        print('ifconfig %s.%d inet %s' % (intf, vlan, params['ip']))
         self.cmd('ifconfig %s.%d inet %s' % (intf, vlan, params['ip']))
         # update the intf name and host's intf map
         newName = '%s.%d' % (intf, vlan)
@@ -76,7 +73,7 @@ def simpleTest():
               'h5': ['192.168.30.10/24', 'via 192.168.30.1', 2],
               'h6': ['192.168.30.11/24', 'via 192.168.30.1', 110]}
 
-    topo = LinearTopo(switches=3, hosts_per_switch=1, ip_map=ip_map)
+    topo = LinearTopo(switches=3, hosts_per_switch=2, ip_map=ip_map)
     net = Mininet(topo=topo, controller=RemoteController)
     net.start()
     CLI(net)
